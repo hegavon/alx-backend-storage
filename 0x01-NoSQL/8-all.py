@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
-""" 8-main """
-from pymongo import MongoClient
-list_all = __import__('8-all').list_all
+'''Module to list all documents in a collection.'''
 
-if __name__ == "__main__":
-    client = MongoClient('mongodb://127.0.0.1:27017')
 
-    # Accessing the collection 'school' in the 'my_db' database
-    school_collection = client.my_db.school
+def list_all(mongo_collection):
+    '''Lists all documents in a collection.
 
-    # Fetching all documents in the collection
-    schools = list_all(school_collection)
+    Args:
+        mongo_collection: The pymongo collection object.
 
-    # Printing the documents
-    for school in schools:
-        print("[{}] {}".format(school.get('_id'), school.get('name')))
+    Returns:
+        List of documents or an empty list if no document is found.
+    '''
+    if mongo_collection is None:
+        return []
+
+    documents = mongo_collection.find()
+    return list(documents)
