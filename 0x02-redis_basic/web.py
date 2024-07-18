@@ -1,36 +1,52 @@
 #!/usr/bin/env python3
-"""
-web cache and tracker
-"""
+import functools
 import requests
 import redis
-from functools import wraps
 
-store = redis.Redis()
+r = redis.Redis()
 
 
-def count_url_access(method):
-    """ Decorator counting how many times
-    a URL is accessed """
-    @wraps(method)
-    def wrapper(url):
-        cached_key = "cached:" + url
-        cached_data = store.get(cached_key)
-        if cached_data:
-            return cached_data.decode("utf-8")
+def cache(func):
+    """
+    Decorator that caches the result of a function call.
 
-        count_key = "count:" + url
-        html = method(url)
+    Args:
+        func (callable): The function to be cached.
 
-        store.incr(count_key)
-        store.set(cached_key, html)
-        store.expire(cached_key, 10)
-        return html
+    Returns:
+        callable: The wrapped function.
+    """
+    @functools.wraps(func)
+    def wrapper(url: str) -> str:
+        cache_key = f"count:{url}"
+        cached_content = r.get(cache_key)
+
+        if cached_content:
+            # Return the cached content
+            return cached_content.decode("utf-8")
+
+        # Call the original function
+        content = func(url)
+
+        # Cache the content and increment the count
+        r.set(cache_key, content, ex=10)
+        r.incr(cache_key)
+
+        return content
+
     return wrapper
 
 
-@count_url_access
+@cache
 def get_page(url: str) -> str:
-    """ Returns HTML content of a url """
-    res = requests.get(url)
-    return res.text
+    """
+    Fetches the HTML content of a given URL.
+
+    Args:
+        url (str): The URL to fetch the content from.
+
+    Returns:
+        str: The HTML content of the page.
+    """
+    response = requests.get(url)
+    return response.text
