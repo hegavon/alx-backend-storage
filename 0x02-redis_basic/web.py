@@ -3,7 +3,7 @@
 web cache and tracker
 """
 import requests
-import redis # type: ignore
+import redis
 from functools import wraps
 
 store = redis.Redis()

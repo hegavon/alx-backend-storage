@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Module declares a redis class and methods"""
-import redis # type: ignore
+import redis
 from uuid import uuid4
 from typing import Union, Callable, Optional
 from functools import wraps
